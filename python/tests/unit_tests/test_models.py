@@ -1,28 +1,12 @@
 # coding=utf-8
 
 from inspect import signature
-import os
+
 import pytest
-from models.content_project import ContentProject, FileEmptyError
 
 
-@pytest.fixture(scope='session')
-def content_project():
-    # todo mock http traffic with httpretty
-    return ContentProject()
 
-
-@pytest.fixture(scope='session')
-def empty_file() -> str:
-    """
-    Returns a complete absolute path to an empty Excel file.
-    """
-    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'empty_file.xlsx')
-
-    return os.path.abspath(file_path)
-
-
-# noinspection PyShadowingNames
+# noinspection PyShadowingNames,PyMethodMayBeStatic,PyUnresolvedReferences
 class TestContentProject:
 
     def test_has_attribute_bulk_upload(self, content_project):
@@ -49,5 +33,7 @@ class TestContentProject:
             content_project.bulk_upload(file_name)
 
     def test_upload_method_raises_error_on_empty_file(self, content_project, empty_file):
+        from models.content_project import FileEmptyError
+
         with pytest.raises(FileEmptyError):
             content_project.bulk_upload(empty_file)
