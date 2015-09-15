@@ -5,10 +5,8 @@ from inspect import signature
 import pytest
 
 
-
 # noinspection PyShadowingNames,PyMethodMayBeStatic,PyUnresolvedReferences
 class TestContentProject:
-
     def test_has_attribute_bulk_upload(self, content_project):
         assert hasattr(content_project, 'bulk_upload')
 
@@ -37,3 +35,4 @@ class TestContentProject:
 
         with pytest.raises(FileEmptyError):
             content_project.bulk_upload(empty_file)
+
