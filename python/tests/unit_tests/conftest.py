@@ -16,6 +16,6 @@ def empty_file() -> str:
     """
     Returns a complete absolute path to an empty Excel file.
     """
-    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'empty_file.xlsx')
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'empty_file.xlsx')
 
     return os.path.abspath(file_path)
