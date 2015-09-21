@@ -21,6 +21,10 @@ class TestContentProject:
 
         assert len(list(sig.parameters)) > 0  # apparently, 'self' does not count
 
+    def test_upload_method_returns_none(self, content_project, test_tv_file):
+        rtype = content_project.bulk_upload(test_tv_file)
+        assert rtype is None
+
     @pytest.mark.parametrize('file_name', [
         'should_not_exi.st',
         '',
@@ -35,4 +39,3 @@ class TestContentProject:
 
         with pytest.raises(FileEmptyError):
             content_project.bulk_upload(empty_file)
-

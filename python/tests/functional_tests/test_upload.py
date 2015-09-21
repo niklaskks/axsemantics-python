@@ -5,6 +5,7 @@ from pytest_bdd import (
     given, when, then,
     parsers,
 )
+
 from models.content_project import ContentProject
 
 
@@ -29,12 +30,13 @@ def token(api_token):
 def tv_content_project(thing_type, token):
     # check method name and signature: are those parameters correct and enough?
     # think hard about high-level interface here
-    return ContentProject()
+    return ContentProject(88)
 
 
 @when('I upload the file')
 def upload_into_content_project(local_file, tv_content_project):
     # the http call to the api needs to be mocked for this
+    # also update content project fixture with mocked data
     tv_content_project.bulk_upload(local_file)
 
 
