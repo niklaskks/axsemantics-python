@@ -36,5 +36,5 @@ def test_tv_file() -> str:
 
 
 def path_to(file_name):
-    file_path = os.path.join(HERE, '..', 'data', file_name)
+    file_path = os.path.join(HERE, 'data', file_name)
     return file_path
