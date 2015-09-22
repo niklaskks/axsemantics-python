@@ -10,6 +10,23 @@ class TestContentProject:
     def test_has_attribute_bulk_upload(self, content_project):
         assert hasattr(content_project, 'bulk_upload')
 
+    def test_has_attribute_generate_content(self, content_project):
+        assert hasattr(content_project, 'generate_content')
+
+    def test_generate_content_is_callable(self, content_project):
+        assert callable(content_project.generate_content)
+
+    def test_generate_content_accepts_argument(self, content_project):
+        sig = signature(content_project.generate_content)
+
+        assert len(list(sig.parameters)) >= 1
+        assert 'force' in sig.parameters
+
+    @pytest.mark.parametrize('force', [True, False])
+    def test_generate_content_returns_int(self, content_project, force):
+        rvalue = content_project.generate_content(force=force)
+        assert isinstance(rvalue, int)
+
     def test_has_attribute_things(self, content_project):
         assert hasattr(content_project, 'things')
 

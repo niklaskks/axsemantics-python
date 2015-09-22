@@ -94,7 +94,9 @@ class ContentProject:
 
     def things(self):
         return [1, 2, 3]
-        # return ThingList().collection.get(id=self.id)
+
+    def generate_content(self, force):
+        return 0
 
 
 class ThingList:
