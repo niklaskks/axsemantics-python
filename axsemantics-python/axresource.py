@@ -38,7 +38,7 @@ class RequestHandler:
         self.token = token
 
     def request(self, method, call_url, params, user_headers=None):
-        url = '{}{}'.format(self.base, call_url)
+        url = '{}{}/'.format(self.base, call_url)
         if method == 'get' or method == 'delete':
             if params:
                 url += self.encode_params(params)
@@ -75,7 +75,7 @@ class RequestHandler:
 
     def _dict_encode(self, data):
         result = []
-        for key, value in data.iteritems():
+        for key, value in data.tems():
             result.append('{}={}'.format(key, value))
         return '&'.join(result)
 
@@ -120,7 +120,7 @@ class AXSemanticsObject(dict):
             self._unsaved_attributes = set()
             self.clear()
 
-        for key, value in data.iteritems():
+        for key, value in data.items():
             super().__setitem__(key, create_object(value, api_token))
 
         self._previous = data
@@ -131,7 +131,7 @@ class AXSemanticsObject(dict):
 
     def request(self, method, url, params=None, headers=None):
         params = params or self._params
-        requestor = RequestHandler(token=self.api_token, api_base=self.api_base())
+        requestor = RequestHandler(token=self.api_token, api_base=self.api_base)
         response = requestor.request(method, url, params, headers)
         return create_object(response, self.api_token)
 
@@ -168,16 +168,16 @@ class APIResource(AXSemanticsObject):
 
     @classmethod
     def class_url(cls):
-        return '/v1/{}s'.format(cls.class_name())
+        return '/v1/{}'.format(cls.class_name)
 
     def instance_url(self):
         id = self.get('id')
-        return '{}/{}'.format(self.class_url(), requests.utils.quote(id))
+        return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
 
 class CreateableResourceMixin(APIResource):
     @classmethod
     def create(cls, api_token=None, **params):
-        requestor = RequestHandler(token=api_token, api_base=cls.api_base())
+        requestor = RequestHandler(token=api_token, api_base=cls.api_base)
         response, token = requestor.request('post', cls.class_url(), params)
         return create_object(response, token)
 
@@ -194,8 +194,9 @@ class DeletableResourceMixin(APIResource):
         return self
 
 
-class ContentProject:
+class ContentProject(CreateableResourceMixin, UpdateableResourceMixin, APIResource):
     class_name = 'content-project'
+    api_base = 'https://api.ax-semantics.com'
 
 class Thing:
     pass
