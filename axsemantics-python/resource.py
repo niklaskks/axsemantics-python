@@ -130,66 +130,72 @@ class AXSemanticsObject(dict):
         return None
 
     def request(self, method, url, params=None, headers=None):
-        params = params or slef._retrieve_params
-        requestor = api_requestor.APIRequestor(key=self.api_token, api_base = self.api_base())
-        response, key = requestor.request(method, url, params, headers)
-        return create_object(response, key)
+        params = params or self._params
+        requestor = RequestHandler(token=self.api_token, api_base=self.api_base())
+        response = requestor.request(method, url, params, headers)
+        return create_object(response, self.api_token)
+
+    def serialize(self, previous):
+        params = {}
+        unsaved_keys = self._unsaved_attributes or set()
+        previous = previous or self._previous or {}
+
+        for key, value in self.items():
+            if key == 'id' or (isinstance(key, str) and key.startswith('_')) or isinstance(value, APIResource):
+                continue
+            elif hasattr(value, 'serialize'):
+                params[key] = value.serialize(previous.get(key, None))
+            elif key in unsaved_keys:
+                params[key] = _get_update_dict(value, previous.get(key, None))
+
+        return params
 
 
 class APIResource(AXSemanticsObject):
     @classmethod
-    def retrieve(cls, id, api_key=None, **params):
-        instance = cls(id, api_key, **params)
+    def retrieve(cls, id, api_token=None, **kwargs):
+        instance = cls(id, api_token, **kwargs)
         instance.refresh()
         return instance
 
     def refresh(self):
-        self.refresh_from(self.request('get', self.instance_url()))
+        self.load_data(self.request('get', self.instance_url()))
         return self
 
     @classmethod
     def class_name(cls):
-        return str(urllib.quote_plus(cls.__name__.lower()))
+        return str(requests.utils.quote(cls.__name__.lower()))
 
-    @classmethod(cls)
+    @classmethod
     def class_url(cls):
         return '/v1/{}s'.format(cls.class_name())
 
     def instance_url(self):
         id = self.get('id')
-        return '{}/{}'.format(self.class_url(), urllib.quote_plus(id))
+        return '{}/{}'.format(self.class_url(), requests.utils.quote(id))
+
+class CreateableResourceMixin(APIResource):
+    @classmethod
+    def create(cls, api_token=None, **params):
+        requestor = RequestHandler(token=api_token, api_base=cls.api_base())
+        response, token = requestor.request('post', cls.class_url(), params)
+        return create_object(response, token)
 
 
-class ListObject(AXSemanticsObject):
-    def list(self, **params):
-        return self.request('get', self['url'],  params)
+class UpdateableResourceMixin(APIResource):
+    def save(self):
+        params = self.serialize(None)
+        self.load_data(self.request('post', self.instance_url(), params))
+        return self
 
-    def auto_paging_iter(self):
-        page = self
-        params = dict(self._retrieve_params)
-
-        while True:
-            item_id = None
-            for item in page:
-                item_id = item.get('id', None)
-                yield item
-
-            if not getattr(page, 'has_more', False) or item_id is None:
-                return
-
-            params['starting_after'] = item_id
-            page = self.list(**params)
-
-    def retrieve(self, id, **params):
-        base = self.get('url')
-        url = '{}/{}'.format(base, urllib.quote_plus(id))
-        return self.request('get', url, params)
-
-    def __iter__(self):
-        return getattr(self, 'data', []).__iter__()
-
-
+class DeletableResourceMixin(APIResource):
+    def delete(self, params=None):
+        self.load_data(self.request('delete', self.instance_url(), params))
+        return self
 
 
 class ContentProject:
+    class_name = 'content-project'
+
+class Thing:
     pass
