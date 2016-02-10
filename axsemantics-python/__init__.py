@@ -8,7 +8,7 @@ api_base = 'https://my.ax-semantics.com/api'
 api_version = 'v1'
 
 
-from axsemantics.resource import (
+from axsemantics.axresource import (
     ContentProject,
     Thing,
 )
