@@ -61,7 +61,9 @@ class RequestHandler:
         content = result.content.decode('utf-8') if hasattr(result.content, 'decode') else result.content
         content = json.loads(content)
 
-        if result.status_code == 200:
+        print(content)
+
+        if result.status_code == 200 or result.status_code == 201:
             return content
         else:
             return result
@@ -176,10 +178,10 @@ class APIResource(AXSemanticsObject):
 
 class CreateableResourceMixin(APIResource):
     @classmethod
-    def create(cls, api_token=None, **params):
+    def create(cls, api_token, **params):
         requestor = RequestHandler(token=api_token, api_base=cls.api_base)
-        response, token = requestor.request('post', cls.class_url(), params)
-        return create_object(response, token)
+        response = requestor.request('post', cls.class_url(), params)
+        return create_object(response, api_token)
 
 
 class UpdateableResourceMixin(APIResource):
@@ -188,13 +190,13 @@ class UpdateableResourceMixin(APIResource):
         self.load_data(self.request('post', self.instance_url(), params))
         return self
 
-class DeletableResourceMixin(APIResource):
+class DeleteableResourceMixin(APIResource):
     def delete(self, params=None):
         self.load_data(self.request('delete', self.instance_url(), params))
         return self
 
 
-class ContentProject(CreateableResourceMixin, UpdateableResourceMixin, APIResource):
+class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'content-project'
     api_base = 'https://api.ax-semantics.com'
 
