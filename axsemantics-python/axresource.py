@@ -13,7 +13,6 @@ def create_object(data, api_token, type=None):
         return [create_object(element, api_token, type=type) for element in data]
     elif isinstance(data, dict) and not isinstance(data, AXSemanticsObject):
         data = data.copy()
-        id = data.get('id')
 
         class_name = type or data.get('type')
         _class = types.get(class_name, AXSemanticsObject)
@@ -68,7 +67,6 @@ class RequestHandler:
         else:
             return result
 
-
     def encode_params(self, params):
         if isinstance(params, dict):
             return '?' + self._dict_encode(params)
@@ -80,8 +78,6 @@ class RequestHandler:
         for key, value in data.tems():
             result.append('{}={}'.format(key, value))
         return '&'.join(result)
-
-
 
 
 class AXSemanticsObject(dict):
@@ -176,7 +172,12 @@ class APIResource(AXSemanticsObject):
         id = self.get('id')
         return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
 
-class CreateableResourceMixin(APIResource):
+
+class ListResource(AXSemanticsObject):
+    pass
+
+
+class CreateableResourceMixin:
     @classmethod
     def create(cls, api_token, **params):
         requestor = RequestHandler(token=api_token, api_base=cls.api_base)
@@ -184,13 +185,14 @@ class CreateableResourceMixin(APIResource):
         return create_object(response, api_token)
 
 
-class UpdateableResourceMixin(APIResource):
+class UpdateableResourceMixin:
     def save(self):
         params = self.serialize(None)
         self.load_data(self.request('post', self.instance_url(), params))
         return self
 
-class DeleteableResourceMixin(APIResource):
+
+class DeleteableResourceMixin:
     def delete(self, params=None):
         self.load_data(self.request('delete', self.instance_url(), params))
         return self
@@ -199,6 +201,7 @@ class DeleteableResourceMixin(APIResource):
 class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'content-project'
     api_base = 'https://api.ax-semantics.com'
+
 
 class Thing:
     pass
