@@ -238,10 +238,27 @@ class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResour
     class_name = 'content-project'
     api_base = 'https://api.ax-semantics.com'
 
+    def __init__(self, *args, **kwargs):
+        super(ContentProject, self).__init__(*args, **kwargs)
+        thing_list = ThingList(cp_id=self.id, api_token=self.api_token)
+        object.__setattr__(self, 'things', thing_list)
+
 
 class ContentProjectList(ListResource):
     api_base = 'https://api.ax-semantics.com'
     initial_url = ContentProject.class_url()
+
+
+class ThingList(ListResource):
+    api_base = 'https://api.ax-semantics.com'
+
+    def __init__(self, cp_id, *args, **kwargs):
+        super(ThingList, self).__init__(*args, **kwargs)
+        self.cp_id = cp_id
+
+    @property
+    def initial_url(self):
+        return '{}/{}/thing'.format(ContentProject.class_url(), self.cp_id)
 
 
 class Thing:
