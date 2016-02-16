@@ -60,8 +60,6 @@ class RequestHandler:
         content = result.content.decode('utf-8') if hasattr(result.content, 'decode') else result.content
         content = json.loads(content)
 
-        print(content)
-
         if result.status_code == 200 or result.status_code == 201:
             return content
         else:
@@ -75,7 +73,7 @@ class RequestHandler:
 
     def _dict_encode(self, data):
         result = []
-        for key, value in data.tems():
+        for key, value in data.items():
             result.append('{}={}'.format(key, value))
         return '&'.join(result)
 
@@ -173,8 +171,46 @@ class APIResource(AXSemanticsObject):
         return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
 
 
-class ListResource(AXSemanticsObject):
-    pass
+class ListResource(APIResource):
+    @property
+    def initial_url(self):
+        pass
+
+    def __init__(self, api_token):
+        self.current_index = None
+        self.current_list = None
+        self.next_page = 1
+        self._params = None
+        object.__setattr__(self, 'api_token', api_token)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current_list == None:
+            self._update()
+
+        if self.current_index >= len(self.current_list):
+            if self.next_page:
+                self._update()
+            else:
+                raise StopIteration
+        self.current_index += 1
+        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token)
+
+    def _update(self, params=None):
+        if self.next_page > 1:
+            params = {'page': self.next_page}
+
+        r = self.request('get', self.initial_url, params=params)
+
+        self.current_index = 0
+        self.current_list = r['results']
+
+        if r['next']:
+            self.next_page += 1
+        else:
+            self.next_page = None
 
 
 class CreateableResourceMixin:
@@ -201,6 +237,11 @@ class DeleteableResourceMixin:
 class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'content-project'
     api_base = 'https://api.ax-semantics.com'
+
+
+class ContentProjectList(ListResource):
+    api_base = 'https://api.ax-semantics.com'
+    initial_url = ContentProject.class_url()
 
 
 class Thing:
