@@ -181,6 +181,7 @@ class ListResource(APIResource):
         self.current_list = None
         self.next_page = 1
         self._params = None
+        self.length = 0
         object.__setattr__(self, 'api_token', api_token)
 
     def __iter__(self):
@@ -198,6 +199,9 @@ class ListResource(APIResource):
         self.current_index += 1
         return create_object(self.current_list[self.current_index - 1], api_token=self.api_token)
 
+    def __len__(self):
+        return self.length
+
     def _update(self, params=None):
         if self.next_page > 1:
             params = {'page': self.next_page}
@@ -205,6 +209,7 @@ class ListResource(APIResource):
         r = self.request('get', self.initial_url, params=params)
 
         self.current_index = 0
+        self.length = r['count']
         self.current_list = r['results']
 
         if r['next']:
