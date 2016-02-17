@@ -2,12 +2,12 @@ import json
 
 import requests
 
-from axsemantics import API_BASE, API_TOKEN
+import constants
 
 
 def authenticate(username, password, api_base=None):
-    api_base = api_base or API_BASE
-    url = '{}/v1/rest-auth/login/'.format(API_BASE)
+    api_base = api_base or constants.API_BASE
+    url = '{}/v1/rest-auth/login/'.format(api_base)
     headers = {
         'Content-Type': 'application/json',
     }
@@ -18,7 +18,8 @@ def authenticate(username, password, api_base=None):
 
     result = requests.post(url=url, headers=headers, json=data)
     content = result.json()
-    API_TOKEN = content['key']
+    print(content)
+    constants.API_TOKEN = content['key']
 
 
 def create_object(data, api_token=None, type=None):
@@ -51,7 +52,7 @@ def _get_update_dict(current, previous):
 
 class RequestHandler:
     def __init__(self, token=None, api_base=None):
-        self.base = api_base or API_BASE
+        self.base = api_base or constants.API_BASE
         self.token = token
 
     def request(self, method, call_url, params, user_headers=None):
@@ -67,7 +68,7 @@ class RequestHandler:
 
         headers = {
             'User-Agent': 'AXSemantics Python Client',
-            'Authorization': 'Token {}'.format(self.token or API_TOKEN),
+            'Authorization': 'Token {}'.format(self.token or constants.API_TOKEN),
         }
 
         if user_headers:
@@ -233,8 +234,7 @@ class ListResource(APIResource):
 class CreateableResourceMixin:
     @classmethod
     def create(cls, api_token=None, api_base=None, **params):
-        api_base = api_base or API_BASE
-        requestor = RequestHandler(token=api_token, api_base=api_base)
+        requestor = RequestHandler(token=api_token)
         response = requestor.request('post', cls.class_url(), params)
         return create_object(response, api_token)
 
