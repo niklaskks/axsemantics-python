@@ -4,7 +4,24 @@ import requests
 
 from axsemantics import API_BASE, API_TOKEN
 
-def create_object(data, api_token, type=None):
+
+def authenticate(username, password, api_base=None):
+    api_base = api_base or API_BASE
+    url = '{}/v1/rest-auth/login/'.format(API_BASE)
+    headers = {
+        'Content-Type': 'application/json',
+    }
+    data = {
+        'email': username,
+        'password': password,
+    }
+
+    result = requests.post(url=url, headers=headers, json=data)
+    content = result.json()
+    API_TOKEN = content['key']
+
+
+def create_object(data, api_token=None, type=None):
     types = {
         'contentproject': ContentProject,
         'thing': Thing,
@@ -56,10 +73,8 @@ class RequestHandler:
         if user_headers:
             headers.update(user_headers)
 
-        result = requests.request(method, url, headers=headers, data=post_data, timeout=80, verify=False)
-
-        content = result.content.decode('utf-8') if hasattr(result.content, 'decode') else result.content
-        content = json.loads(content)
+        result = requests.request(method, url, headers=headers, data=post_data)
+        content = result.json()
 
         if result.status_code == 200 or result.status_code == 201:
             return content
