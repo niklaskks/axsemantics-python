@@ -3,9 +3,9 @@
 
 
 # Configuration
-api_key = None
-api_base = 'https://my.ax-semantics.com/api'
-api_version = 'v1'
+API_TOKEN = None
+API_BASE = 'https://api.ax-semantics.com'
+API_VERSION = 'v1'
 
 
 from axsemantics.axresource import (

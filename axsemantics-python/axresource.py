@@ -2,6 +2,7 @@ import json
 
 import requests
 
+from axsemantics import API_BASE, API_TOKEN
 
 def create_object(data, api_token, type=None):
     types = {
@@ -33,7 +34,7 @@ def _get_update_dict(current, previous):
 
 class RequestHandler:
     def __init__(self, token=None, api_base=None):
-        self.base = api_base
+        self.base = api_base or API_BASE
         self.token = token
 
     def request(self, method, call_url, params, user_headers=None):
@@ -49,7 +50,7 @@ class RequestHandler:
 
         headers = {
             'User-Agent': 'AXSemantics Python Client',
-            'Authorization': 'Token {}'.format(self.token),
+            'Authorization': 'Token {}'.format(self.token or API_TOKEN),
         }
 
         if user_headers:
@@ -102,7 +103,7 @@ class AXSemanticsObject(dict):
         return super(AXSemanticsObject, self).__delitem__(key)
 
     @classmethod
-    def create_from_dict(cls, data, api_token):
+    def create_from_dict(cls, data, api_token=None):
         instance = cls(data.get('id'), api_token=api_token)
         instance.load_data(data, api_token=api_token)
         return instance
@@ -120,10 +121,6 @@ class AXSemanticsObject(dict):
             super().__setitem__(key, create_object(value, api_token))
 
         self._previous = data
-
-    @classmethod
-    def api_base(cls):
-        return None
 
     def request(self, method, url, params=None, headers=None):
         params = params or self._params
@@ -176,7 +173,7 @@ class ListResource(APIResource):
     def initial_url(self):
         pass
 
-    def __init__(self, api_token):
+    def __init__(self, api_token=None):
         self.current_index = None
         self.current_list = None
         self.next_page = 1
@@ -220,8 +217,9 @@ class ListResource(APIResource):
 
 class CreateableResourceMixin:
     @classmethod
-    def create(cls, api_token, **params):
-        requestor = RequestHandler(token=api_token, api_base=cls.api_base)
+    def create(cls, api_token=None, api_base=None, **params):
+        api_base = api_base or API_BASE
+        requestor = RequestHandler(token=api_token, api_base=api_base)
         response = requestor.request('post', cls.class_url(), params)
         return create_object(response, api_token)
 
@@ -241,7 +239,6 @@ class DeleteableResourceMixin:
 
 class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'content-project'
-    api_base = 'https://api.ax-semantics.com'
 
     def __init__(self, *args, **kwargs):
         super(ContentProject, self).__init__(*args, **kwargs)
@@ -250,12 +247,10 @@ class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResour
 
 
 class ContentProjectList(ListResource):
-    api_base = 'https://api.ax-semantics.com'
     initial_url = ContentProject.class_url()
 
 
 class ThingList(ListResource):
-    api_base = 'https://api.ax-semantics.com'
 
     def __init__(self, cp_id, *args, **kwargs):
         super(ThingList, self).__init__(*args, **kwargs)
