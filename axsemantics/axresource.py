@@ -69,6 +69,7 @@ class RequestHandler:
         headers = {
             'User-Agent': 'AXSemantics Python Client',
             'Authorization': 'Token {}'.format(self.token or constants.API_TOKEN),
+            'Content-Type': 'application/json',
         }
 
         if user_headers:
