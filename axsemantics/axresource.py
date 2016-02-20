@@ -57,29 +57,30 @@ class RequestHandler:
 
     def request(self, method, call_url, params, user_headers=None):
         url = '{}{}/'.format(self.base, call_url)
+        token = self.token or constants.API_TOKEN
+
         if method == 'get' or method == 'delete':
             if params:
                 url += self.encode_params(params)
-            post_data = None
-        elif method == 'post':
-            post_data = params
-        else:
-            return None
 
         headers = {
             'User-Agent': 'AXSemantics Python Client',
-            'Authorization': 'Token {}'.format(self.token or constants.API_TOKEN),
             'Content-Type': 'application/json',
         }
+
+        if token:
+            headers.update({'Authorization': 'Token {}'.format(token)})
 
         if user_headers:
             headers.update(user_headers)
 
-        result = requests.request(method, url, headers=headers, data=post_data)
-        content = result.json()
+        if method == 'post':
+            result = requests.post(method, url, headers=headers, json=params)
+        else:
+            result = requests.request(method, url, headers=headers)
 
         if result.status_code == 200 or result.status_code == 201:
-            return content
+            return result.json()
         else:
             return result
 
