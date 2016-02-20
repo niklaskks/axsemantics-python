@@ -6,20 +6,14 @@ import constants
 
 
 def authenticate(username, password, api_base=None):
-    api_base = api_base or constants.API_BASE
-    url = '{}/v1/rest-auth/login/'.format(api_base)
-    headers = {
-        'Content-Type': 'application/json',
-    }
     data = {
         'email': username,
         'password': password,
     }
+    requestor = RequestHandler()
+    response = requestor.request(url='/v1/rest-auth/login', method='post', params=data)
 
-    result = requests.post(url=url, headers=headers, json=data)
-    content = result.json()
-    print(content)
-    constants.API_TOKEN = content['key']
+    constants.API_TOKEN = response['key']
 
 
 def create_object(data, api_token=None, type=None):
