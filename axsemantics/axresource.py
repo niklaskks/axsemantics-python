@@ -24,13 +24,14 @@ def create_object(data, api_token=None, _type=None, **kwargs):
 
     if isinstance(data, list):
         return [create_object(element, api_token, type=_type, **kwargs) for element in data]
-    elif isinstance(data, dict) and not isinstance(data, AXSemanticsObject):
+
+    if isinstance(data, dict) and not isinstance(data, AXSemanticsObject):
         data = data.copy()
 
         _class = types.get(_type, AXSemanticsObject)
         return _class.create_from_dict(data, api_token, **kwargs)
-    else:
-        return data
+
+    return data
 
 
 def _get_update_dict(current, previous):
@@ -40,6 +41,7 @@ def _get_update_dict(current, previous):
         for key in set(previous.keys()) - set(current.keys()):
             diff[key] = ""
         return diff
+
     return current if current is not None else ""
 
 
@@ -76,8 +78,8 @@ class RequestHandler:
 
         if result.status_code == 200 or result.status_code == 201:
             return result.json()
-        else:
-            print(result)
+
+        print(result)
 
     def encode_params(self, params):
         if isinstance(params, dict):
@@ -154,7 +156,7 @@ class AXSemanticsObject(dict):
         for key, value in self.items():
             if key == 'id' or (isinstance(key, str) and key.startswith('_')) or isinstance(value, APIResource):
                 continue
-            elif hasattr(value, 'serialize'):
+            if hasattr(value, 'serialize'):
                 params[key] = value.serialize(previous.get(key, None))
             elif key in unsaved_keys:
                 params[key] = _get_update_dict(value, previous.get(key, None))
