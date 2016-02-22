@@ -11,7 +11,11 @@ def authenticate(username, password, api_base=None):
         'password': password,
     }
     requestor = RequestHandler()
-    response = requestor.request(url='/v1/rest-auth/login', method='post', params=data)
+    response = requestor.request(
+        url='/v1/rest-auth/login',
+        method='post',
+        params=data,
+    )
 
     constants.API_TOKEN = response['key']
 
@@ -38,8 +42,10 @@ def _get_update_dict(current, previous):
     if isinstance(current, dict):
         previous = previous or {}
         diff = current.copy()
-        for key in set(previous.keys()) - set(current.keys()):
-            diff[key] = ""
+        diff.update({
+            key: ''
+            for key in set(previous.keys()) - set(current.keys())
+        })
         return diff
 
     return current if current is not None else ""
@@ -54,9 +60,8 @@ class RequestHandler:
         url = '{}{}/'.format(self.base, url)
         token = self.token or constants.API_TOKEN
 
-        if method == 'get' or method == 'delete':
-            if params:
-                url += self.encode_params(params)
+        if method in ('get', 'delete') and params:
+            url += self.encode_params(params)
 
         headers = {
             'User-Agent': 'AXSemantics Python Client',
@@ -76,7 +81,7 @@ class RequestHandler:
         else:
             result = requests.request(method, url, headers=headers)
 
-        if result.status_code == 200 or result.status_code == 201:
+        if result.status_code in (200, 201):
             return result.json()
 
         print(result)
@@ -88,10 +93,10 @@ class RequestHandler:
             return '?' + '&'.join(self._dict_encode(d) for d in params)
 
     def _dict_encode(self, data):
-        result = []
-        for key, value in data.items():
-            result.append('{}={}'.format(key, value))
-        return '&'.join(result)
+        return '&'.join(
+            '{}={}'.format(key, value)
+            for key, value in data.items()
+        )
 
 
 class AXSemanticsObject(dict):
@@ -143,8 +148,10 @@ class AXSemanticsObject(dict):
 
     def request(self, method, url, params=None, headers=None):
         params = params or self._params
-        requestor = RequestHandler(token=self.api_token,
-                                   api_base=self.api_base or constants.API_BASE)
+        requestor = RequestHandler(
+            token=self.api_token,
+            api_base=self.api_base or constants.API_BASE,
+        )
         response = requestor.request(method, url, params, headers)
         return create_object(response, self.api_token, _type=self.class_name)
 
