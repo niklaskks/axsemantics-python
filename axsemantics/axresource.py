@@ -220,13 +220,14 @@ class ListResource(APIResource):
         if self.next_page > 1:
             params = {'page': self.next_page}
 
-        r = self.request('get', self.initial_url, params=params)
+        requestor = RequestHandler(token=self.api_token)
+        response = requestor.request('get', self.initial_url, params)
 
         self.current_index = 0
-        self.length = r['count']
-        self.current_list = r['results']
+        self.length = response['count']
+        self.current_list = response['results']
 
-        if r['next']:
+        if response['next']:
             self.next_page += 1
         else:
             self.next_page = None
@@ -278,7 +279,22 @@ class ThingList(ListResource):
     def initial_url(self):
         return '{}/{}/thing'.format(ContentProject.class_url(), self.cp_id)
 
+    def __next__(self):
+        if self.current_index >= len(self.current_list):
+            if self.next_page:
+                self._update()
+            else:
+                raise StopIteration
+        self.current_index += 1
+        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, _type=self.class_name, cp_id=self.cp_id)
+
 
 class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'thing'
-    pass
+
+    def __init__(self, id, cp_id=None, **kwargs):
+        super(Thing, self).__init__(id, **kwargs)
+        self.cp_id = cp_id
+
+    def instance_url(self):
+        return '/v1/content-project/{}/thing/{}'.format(self.cp_id, self['id'])
