@@ -18,7 +18,7 @@ def authenticate(username, password, api_base=None):
 
 def create_object(data, api_token=None, type=None):
     types = {
-        'contentproject': ContentProject,
+        'content-project': ContentProject,
         'thing': Thing,
     }
 
@@ -27,8 +27,7 @@ def create_object(data, api_token=None, type=None):
     elif isinstance(data, dict) and not isinstance(data, AXSemanticsObject):
         data = data.copy()
 
-        class_name = type or data.get('type')
-        _class = types.get(class_name, AXSemanticsObject)
+        _class = types.get(type, AXSemanticsObject)
         return _class.create_from_dict(data, api_token)
     else:
         return data
@@ -92,11 +91,14 @@ class RequestHandler:
 
 
 class AXSemanticsObject(dict):
-    def __init__(self, id, api_token=None, **kwargs):
+    class_name = 'AXSemanticsObject'
+
+    def __init__(self, id, api_token=None, api_base=None, **kwargs):
         super(AXSemanticsObject, self).__init__()
         self._unsaved_attributes = set()
         self._params = kwargs
         self._previous = None
+        self.api_base = api_base or constants.API_BASE
 
         self['id'] = id
         object.__setattr__(self, 'api_token', api_token)
@@ -130,7 +132,7 @@ class AXSemanticsObject(dict):
             self.clear()
 
         for key, value in data.items():
-            super().__setitem__(key, create_object(value, api_token))
+            super().__setitem__(key, create_object(value, api_token, type=self.class_name))
 
         self._previous = data
 
@@ -139,7 +141,7 @@ class AXSemanticsObject(dict):
         requestor = RequestHandler(token=self.api_token,
                                    api_base=self.api_base or constants.API_BASE)
         response = requestor.request(method, url, params, headers)
-        return create_object(response, self.api_token)
+        return create_object(response, self.api_token, type=self.class_name)
 
     def serialize(self, previous):
         params = {}
@@ -193,7 +195,7 @@ class ListResource(APIResource):
         self._params = None
         self.length = 0
         self.api_base = api_base or constants.API_BASE
-        object.__setattr__(self, 'api_token', api_token)
+        object.__setattr__(self, 'api_token', api_token or constants.API_TOKEN)
         self._update()
 
     def __iter__(self):
@@ -251,9 +253,9 @@ class DeleteableResourceMixin:
 class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'content-project'
 
-    def __init__(self, *args, **kwargs):
-        super(ContentProject, self).__init__(*args, **kwargs)
-        thing_list = ThingList(cp_id=self.id, api_token=self.api_token)
+    def __init__(self, id, api_token=None, **kwargs):
+        super(ContentProject, self).__init__(id, api_token=api_token, **kwargs)
+        thing_list = ThingList(cp_id=id, api_token=api_token)
         object.__setattr__(self, 'things', thing_list)
 
 
@@ -264,8 +266,8 @@ class ContentProjectList(ListResource):
 class ThingList(ListResource):
 
     def __init__(self, cp_id, *args, **kwargs):
-        super(ThingList, self).__init__(*args, **kwargs)
         self.cp_id = cp_id
+        super(ThingList, self).__init__(*args, **kwargs)
 
     @property
     def initial_url(self):
@@ -273,4 +275,5 @@ class ThingList(ListResource):
 
 
 class Thing:
+    class_name = 'thing'
     pass
