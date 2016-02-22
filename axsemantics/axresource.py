@@ -75,7 +75,7 @@ class RequestHandler:
         if result.status_code == 200 or result.status_code == 201:
             return result.json()
         else:
-            return result
+            print(result)
 
     def encode_params(self, params):
         if isinstance(params, dict):
@@ -132,7 +132,7 @@ class AXSemanticsObject(dict):
             self.clear()
 
         for key, value in data.items():
-            super().__setitem__(key, create_object(value, api_token, type=self.class_name))
+            super().__setitem__(key, create_object(value, api_token, _type=self.class_name))
 
         self._previous = data
 
@@ -141,7 +141,7 @@ class AXSemanticsObject(dict):
         requestor = RequestHandler(token=self.api_token,
                                    api_base=self.api_base or constants.API_BASE)
         response = requestor.request(method, url, params, headers)
-        return create_object(response, self.api_token, type=self.class_name)
+        return create_object(response, self.api_token, _type=self.class_name)
 
     def serialize(self, previous):
         params = {}
@@ -195,7 +195,7 @@ class ListResource(APIResource):
         self._params = None
         self.length = 0
         self.api_base = api_base or constants.API_BASE
-        object.__setattr__(self, 'api_token', api_token or constants.API_TOKEN)
+        self.api_token = api_token or constants.API_TOKEN
         self._update()
 
     def __iter__(self):
@@ -208,7 +208,7 @@ class ListResource(APIResource):
             else:
                 raise StopIteration
         self.current_index += 1
-        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, type=self.class_name)
+        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, _type=self.class_name)
 
     def __len__(self):
         return self.length
