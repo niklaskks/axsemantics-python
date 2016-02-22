@@ -16,19 +16,19 @@ def authenticate(username, password, api_base=None):
     constants.API_TOKEN = response['key']
 
 
-def create_object(data, api_token=None, type=None):
+def create_object(data, api_token=None, _type=None, **kwargs):
     types = {
         'content-project': ContentProject,
         'thing': Thing,
     }
 
     if isinstance(data, list):
-        return [create_object(element, api_token, type=type) for element in data]
+        return [create_object(element, api_token, type=_type, **kwargs) for element in data]
     elif isinstance(data, dict) and not isinstance(data, AXSemanticsObject):
         data = data.copy()
 
-        _class = types.get(type, AXSemanticsObject)
-        return _class.create_from_dict(data, api_token)
+        _class = types.get(_type, AXSemanticsObject)
+        return _class.create_from_dict(data, api_token, **kwargs)
     else:
         return data
 
@@ -117,8 +117,8 @@ class AXSemanticsObject(dict):
         return super(AXSemanticsObject, self).__delitem__(key)
 
     @classmethod
-    def create_from_dict(cls, data, api_token=None):
-        instance = cls(data.get('id'), api_token=api_token)
+    def create_from_dict(cls, data, api_token=None, **kwargs):
+        instance = cls(data.get('id'), api_token=api_token, **kwargs)
         instance.load_data(data, api_token=api_token)
         return instance
 
