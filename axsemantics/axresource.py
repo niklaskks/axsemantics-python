@@ -12,7 +12,7 @@ def authenticate(username, password, api_base=None):
     }
     requestor = RequestHandler()
     response = requestor.request(
-        url='/v1/rest-auth/login',
+        url='/{}/rest-auth/login'.format(constants.API_VERSION),
         method='post',
         params=data,
     )
@@ -188,7 +188,7 @@ class APIResource(AXSemanticsObject):
 
     @classmethod
     def class_url(cls):
-        return '/v1/{}'.format(cls.class_name)
+        return '/{}/{}'.format(constants.API_VERSION, cls.class_name)
 
     def instance_url(self):
         id = self.get('id')
@@ -312,4 +312,8 @@ class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResource
         self.cp_id = cp_id
 
     def instance_url(self):
-        return '/v1/content-project/{}/thing/{}'.format(self.cp_id, self['id'])
+        return '/{}/content-project/{}/thing/{}'.format(
+            constants.API_VERSION,
+            self.cp_id,
+            self['id'],
+        )
