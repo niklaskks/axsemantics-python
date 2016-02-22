@@ -208,10 +208,13 @@ class ListResource(APIResource):
             else:
                 raise StopIteration
         self.current_index += 1
-        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token)
+        return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, type=self.class_name)
 
     def __len__(self):
         return self.length
+
+    def __repr__(self):
+        return 'List of {} objects of type "{}"'.format(len(self), self.class_name)
 
     def _update(self, params=None):
         if self.next_page > 1:
@@ -261,9 +264,11 @@ class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResour
 
 class ContentProjectList(ListResource):
     initial_url = ContentProject.class_url()
+    class_name = 'content-project'
 
 
 class ThingList(ListResource):
+    class_name = 'thing'
 
     def __init__(self, cp_id, *args, **kwargs):
         self.cp_id = cp_id
@@ -274,6 +279,6 @@ class ThingList(ListResource):
         return '{}/{}/thing'.format(ContentProject.class_url(), self.cp_id)
 
 
-class Thing:
+class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'thing'
     pass
