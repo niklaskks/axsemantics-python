@@ -1,4 +1,4 @@
-[![ax logo](AX_Logo.png)](https://www.ax-semantics.com/)
+[![ax logo](docs/AX_Logo.png)](https://www.ax-semantics.com/)
 
 # axsemantics-python
 
@@ -14,6 +14,3 @@ In the end you should be able to install this package using pip.
 # How to contribute
 
 Fork it, fix it, PR it! :)
-
-
-
