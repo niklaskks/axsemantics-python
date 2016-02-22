@@ -49,8 +49,8 @@ class RequestHandler:
         self.base = api_base or constants.API_BASE
         self.token = token
 
-    def request(self, method, call_url, params, user_headers=None):
-        url = '{}{}/'.format(self.base, call_url)
+    def request(self, method, url, params, user_headers=None):
+        url = '{}{}/'.format(self.base, url)
         token = self.token or constants.API_TOKEN
 
         if method == 'get' or method == 'delete':
@@ -69,7 +69,7 @@ class RequestHandler:
             headers.update(user_headers)
 
         if method == 'post':
-            result = requests.post(method, url, headers=headers, json=params)
+            result = requests.post(url, headers=headers, json=params)
         else:
             result = requests.request(method, url, headers=headers)
 
@@ -136,7 +136,8 @@ class AXSemanticsObject(dict):
 
     def request(self, method, url, params=None, headers=None):
         params = params or self._params
-        requestor = RequestHandler(token=self.api_token, api_base=self.api_base)
+        requestor = RequestHandler(token=self.api_token,
+                                   api_base=self.api_base or constants.API_BASE)
         response = requestor.request(method, url, params, headers)
         return create_object(response, self.api_token)
 
@@ -185,21 +186,20 @@ class ListResource(APIResource):
     def initial_url(self):
         pass
 
-    def __init__(self, api_token=None):
+    def __init__(self, api_token=None, api_base=None):
         self.current_index = None
         self.current_list = None
         self.next_page = 1
         self._params = None
         self.length = 0
+        self.api_base = api_base or constants.API_BASE
         object.__setattr__(self, 'api_token', api_token)
+        self._update()
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.current_list == None:
-            self._update()
-
         if self.current_index >= len(self.current_list):
             if self.next_page:
                 self._update()
