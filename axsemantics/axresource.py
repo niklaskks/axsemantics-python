@@ -69,6 +69,8 @@ class RequestHandler:
 
         if method == 'post':
             result = requests.post(url, headers=headers, json=params)
+        elif method == 'put':
+            result = requests.put(url, headers=headers, data=params)
         else:
             result = requests.request(method, url, headers=headers)
 
@@ -110,7 +112,7 @@ class AXSemanticsObject(dict):
 
     def __setitem__(self, key, value):
         self._unsaved_attributes.add(key)
-        return super(AXSemanticsObject, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def __delitem__(self, key):
         self._unsaved_attributes.remove(key)
@@ -131,8 +133,9 @@ class AXSemanticsObject(dict):
             self._unsaved_attributes = set()
             self.clear()
 
-        for key, value in data.items():
-            super().__setitem__(key, create_object(value, api_token, _type=self.class_name))
+        if data:
+            for key, value in data.items():
+                super().__setitem__(key, create_object(value, api_token, _type=self.class_name))
 
         self._previous = data
 
@@ -243,8 +246,11 @@ class CreateableResourceMixin:
 
 class UpdateableResourceMixin:
     def save(self):
-        params = self.serialize(None)
-        self.load_data(self.request('post', self.instance_url(), params))
+        # todo: make api take patch
+        # use: required_params in model
+        #params = self.serialize(None)
+        params = json.dumps(self)
+        self.load_data(self.request('put', self.instance_url(), params))
         return self
 
 
