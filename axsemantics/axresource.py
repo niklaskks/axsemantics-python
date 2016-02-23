@@ -127,7 +127,7 @@ class AXSemanticsObject(dict):
 
     @classmethod
     def create_from_dict(cls, data, api_token=None, **kwargs):
-        instance = cls(data.get('id'), api_token=api_token, **kwargs)
+        instance = cls(id=data.get('id'), api_token=api_token, **kwargs)
         instance.load_data(data, api_token=api_token)
         return instance
 
@@ -246,11 +246,11 @@ class ListResource(APIResource):
 
 
 class CreateableResourceMixin:
-    @classmethod
-    def create(cls, api_token=None, api_base=None, **params):
-        requestor = RequestHandler(token=api_token)
-        response = requestor.request('post', cls.class_url(), params)
-        return create_object(response, api_token)
+    def create(self, api_token=None, api_base=None, **params):
+        params = {key: self[key] for key in self.required_fields}
+        params.update(self.serialize(None))
+        self.load_data(self.request('post', self.instance_url(), params=params))
+        return self
 
 
 class UpdateableResourceMixin:
