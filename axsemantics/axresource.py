@@ -254,10 +254,22 @@ class CreateableResourceMixin:
 
 
 class UpdateableResourceMixin:
+    @property
+    def required_fields(self):
+        return []
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateableResourceMixin, self).__init__(*args, **kwargs)
+        for key in self.required_fields:
+            if key in kwargs:
+                self[key] = kwargs[key]
+            else:
+                self[key] = None
+
     def save(self):
-        # todo: make api take patch
-        # use: required_params in model
-        #params = self.serialize(None)
+        # these would be the params for PATCH
+        # params = {key: self[key] for key in self.required_fields}
+        # params.update(self.serialize(None))
         params = json.dumps(self)
         self.load_data(self.request('put', self.instance_url(), params))
         return self
@@ -306,14 +318,18 @@ class ThingList(ListResource):
 
 class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, APIResource):
     class_name = 'thing'
+    required_fields = ['uid', 'name', 'content_project', 'pure_data']
 
-    def __init__(self, id, cp_id=None, **kwargs):
+    def __init__(self, cp_id=None, **kwargs):
+        id = kwargs.pop('id') if 'id' in kwargs else None
         super(Thing, self).__init__(id, **kwargs)
-        self.cp_id = cp_id
+        self['content_project'] = cp_id
 
     def instance_url(self):
-        return '/{}/content-project/{}/thing/{}'.format(
+        url = '/{}/content-project/{}/thing'.format(
             constants.API_VERSION,
-            self.cp_id,
-            self['id'],
+            self['content_project'],
         )
+        if self['id']:
+            url += '/{}'.format(self['id'])
+        return url
