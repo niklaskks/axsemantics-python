@@ -2,12 +2,12 @@ import json
 
 import requests
 
-import constants
+from axsemantics import constants
 
 
-def authenticate(username, password, api_base=None):
+def login(user, password, api_base=None):
     data = {
-        'email': username,
+        'email': user,
         'password': password,
     }
     requestor = RequestHandler()
