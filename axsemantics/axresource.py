@@ -195,12 +195,8 @@ class APIResource(AXSemanticsObject):
         return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
 
 
-class ListResource(APIResource):
-    @property
-    def initial_url(self):
-        pass
-
-    def __init__(self, api_token=None, api_base=None):
+class ListResource:
+    def __init__(self, class_name, initial_url, api_token=None, api_base=None):
         self.current_index = None
         self.current_list = None
         self.next_page = 1
@@ -208,6 +204,8 @@ class ListResource(APIResource):
         self.length = 0
         self.api_base = api_base or constants.API_BASE
         self.api_token = api_token or constants.API_TOKEN
+        self.class_name = class_name
+        self.initial_url = initial_url
         self._update()
 
     def __iter__(self):
@@ -243,6 +241,14 @@ class ListResource(APIResource):
             self.next_page += 1
         else:
             self.next_page = None
+
+    def get(self, **kwargs):
+        print('Searching for {} in {}'.format(kwargs, self))
+        for item in self:
+            print('Item has {}, we look for {}'.format(([item[key] for key in kwargs]), (kwargs[key] for key in kwargs)))
+            if all([item[key] == kwargs[key] for key in kwargs]):
+                return item
+        return None
 
 
 class CreateableResourceMixin:
@@ -281,13 +287,23 @@ class DeleteableResourceMixin:
         return self
 
 
-class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, APIResource):
+class ListableMixin:
+    list_class = None
+
+    @classmethod
+    def all(cls):
+        if not cls.list_class:
+            return ListResource(initial_url=cls.class_url(), class_name=cls.class_name)
+        return cls.list_class()
+
+
+class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
     class_name = 'content-project'
 
     def __init__(self, id, api_token=None, **kwargs):
         super(ContentProject, self).__init__(id, api_token=api_token, **kwargs)
-        thing_list = ThingList(cp_id=id, api_token=api_token)
-        object.__setattr__(self, 'things', thing_list)
+        thing_url = '{}/thing'.format(self.instance_url())
+        self.things = ThingList(cp_id=id, api_token=api_token, class_name=self.class_name, initial_url=thing_url)
 
 
 class ContentProjectList(ListResource):
@@ -302,10 +318,6 @@ class ThingList(ListResource):
         self.cp_id = cp_id
         super(ThingList, self).__init__(*args, **kwargs)
 
-    @property
-    def initial_url(self):
-        return '{}/{}/thing'.format(ContentProject.class_url(), self.cp_id)
-
     def __next__(self):
         if self.current_index >= len(self.current_list):
             if self.next_page:
@@ -316,9 +328,10 @@ class ThingList(ListResource):
         return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, _type=self.class_name, cp_id=self.cp_id)
 
 
-class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, APIResource):
+class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
     class_name = 'thing'
     required_fields = ['uid', 'name', 'content_project', 'pure_data']
+    list_class = ThingList
 
     def __init__(self, cp_id=None, **kwargs):
         id = kwargs.pop('id') if 'id' in kwargs else None
