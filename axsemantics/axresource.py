@@ -193,8 +193,11 @@ class APIResource(AXSemanticsObject):
         return '/{}/{}'.format(constants.API_VERSION, cls.class_name)
 
     def instance_url(self):
-        id = self['id']
-        return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
+        if self.get('id', None):
+            id = self['id']
+            return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
+        else:
+            return self.class_url
 
 
 class ListResource:
@@ -255,7 +258,7 @@ class CreateableResourceMixin:
     def create(self, api_token=None, api_base=None, **params):
         params = {key: self[key] for key in self.required_fields}
         params.update(self.serialize(None))
-        self.load_data(self.request('post', self.class_url(), params=params))
+        self.load_data(self.request('post', self.instance_url(), params=params))
         return self
 
 
@@ -332,7 +335,7 @@ class ThingList(ListResource):
 
 class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
     class_name = 'thing'
-    required_fields = ['uid', 'name', 'content_project', 'pure_data']
+    required_fields = ['uid', 'name', 'content_project']
     list_class = ThingList
 
     def __init__(self, cp_id=None, **kwargs):
