@@ -85,6 +85,8 @@ class RequestHandler:
             return result.json()
 
         print(result)
+        print(result.request.url)
+        print(result.content)
 
     def encode_params(self, params):
         if isinstance(params, dict):
@@ -102,14 +104,14 @@ class RequestHandler:
 class AXSemanticsObject(dict):
     class_name = 'AXSemanticsObject'
 
-    def __init__(self, id, api_token=None, api_base=None, **kwargs):
+    def __init__(self, api_token=None, api_base=None, **kwargs):
         super(AXSemanticsObject, self).__init__()
         self._unsaved_attributes = set()
         self._params = kwargs
         self._previous = None
         self.api_base = api_base or constants.API_BASE
 
-        self['id'] = id
+        self['id'] = kwargs.get('id', None)
         object.__setattr__(self, 'api_token', api_token)
 
     def update(self, update_dict):
@@ -127,7 +129,7 @@ class AXSemanticsObject(dict):
 
     @classmethod
     def create_from_dict(cls, data, api_token=None, **kwargs):
-        instance = cls(id=data.get('id'), api_token=api_token, **kwargs)
+        instance = cls(api_token=api_token, **kwargs)
         instance.load_data(data, api_token=api_token)
         return instance
 
@@ -174,7 +176,7 @@ class AXSemanticsObject(dict):
 class APIResource(AXSemanticsObject):
     @classmethod
     def retrieve(cls, id, api_token=None, **kwargs):
-        instance = cls(id, api_token, **kwargs)
+        instance = cls(api_token, id=id, **kwargs)
         instance.refresh()
         return instance
 
@@ -191,7 +193,7 @@ class APIResource(AXSemanticsObject):
         return '/{}/{}'.format(constants.API_VERSION, cls.class_name)
 
     def instance_url(self):
-        id = self.get('id')
+        id = self['id']
         return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
 
 
@@ -243,9 +245,7 @@ class ListResource:
             self.next_page = None
 
     def get(self, **kwargs):
-        print('Searching for {} in {}'.format(kwargs, self))
         for item in self:
-            print('Item has {}, we look for {}'.format(([item[key] for key in kwargs]), (kwargs[key] for key in kwargs)))
             if all([item[key] == kwargs[key] for key in kwargs]):
                 return item
         return None
@@ -255,7 +255,7 @@ class CreateableResourceMixin:
     def create(self, api_token=None, api_base=None, **params):
         params = {key: self[key] for key in self.required_fields}
         params.update(self.serialize(None))
-        self.load_data(self.request('post', self.instance_url(), params=params))
+        self.load_data(self.request('post', self.class_url(), params=params))
         return self
 
 
@@ -294,16 +294,18 @@ class ListableMixin:
     def all(cls):
         if not cls.list_class:
             return ListResource(initial_url=cls.class_url(), class_name=cls.class_name)
-        return cls.list_class()
+        return cls.list_class
 
 
 class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
     class_name = 'content-project'
+    required_fields = ['name', 'engine_configuration']
 
-    def __init__(self, id, api_token=None, **kwargs):
-        super(ContentProject, self).__init__(id, api_token=api_token, **kwargs)
-        thing_url = '{}/thing'.format(self.instance_url())
-        self.things = ThingList(cp_id=id, api_token=api_token, class_name=self.class_name, initial_url=thing_url)
+    def __init__(self, api_token=None, **kwargs):
+        super(ContentProject, self).__init__(api_token=api_token, **kwargs)
+        if self['id']:
+            thing_url = '{}/thing'.format(self.instance_url())
+            self.things = ThingList(cp_id=self['id'], api_token=api_token, class_name=self.class_name, initial_url=thing_url)
 
 
 class ContentProjectList(ListResource):
@@ -334,8 +336,7 @@ class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResource
     list_class = ThingList
 
     def __init__(self, cp_id=None, **kwargs):
-        id = kwargs.pop('id') if 'id' in kwargs else None
-        super(Thing, self).__init__(id, **kwargs)
+        super(Thing, self).__init__(**kwargs)
         self['content_project'] = cp_id
 
     def instance_url(self):
