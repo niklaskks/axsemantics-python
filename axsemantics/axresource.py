@@ -17,6 +17,8 @@ def login(user, password, api_base=None):
         params=data,
     )
 
+    if constants.DEBUG:
+        print('Received authentication token {}.'.format(response['key']))
     constants.API_TOKEN = response['key']
 
 
@@ -74,6 +76,9 @@ class RequestHandler:
         if user_headers:
             headers.update(user_headers)
 
+        if constants.DEBUG:
+            print('Sending {} request to {}.'.format(method, url))
+
         if method == 'post':
             result = requests.post(url, headers=headers, json=params)
         elif method == 'put':
@@ -81,12 +86,12 @@ class RequestHandler:
         else:
             result = requests.request(method, url, headers=headers)
 
-        if result.status_code in (200, 201):
+        if result.status_code in (200, 201, 204):
             return result.json()
 
-        print(result)
-        print(result.request.url)
-        print(result.content)
+        if constants.DEBUG:
+            print('Got unexpected reponse with status {}.'.format(result.status_code))
+            print('Content: {}'.format(result.content))
 
     def encode_params(self, params):
         if isinstance(params, dict):
@@ -197,7 +202,7 @@ class APIResource(AXSemanticsObject):
             id = self['id']
             return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
         else:
-            return self.class_url
+            return self.class_url()
 
 
 class ListResource:
