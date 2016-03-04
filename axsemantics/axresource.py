@@ -6,6 +6,7 @@ from axsemantics import constants
 from axsemantics.errors import (
     APIConnectionError,
     APIError,
+    AuthenticationError,
 )
 
 
@@ -20,6 +21,9 @@ def login(user, password, api_base=None):
         method='post',
         params=data,
     )
+
+    if not response.get('key', None):
+        raise AuthenticationError(response)
 
     if constants.DEBUG:
         print('Received authentication token {}.'.format(response['key']))

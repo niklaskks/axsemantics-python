@@ -25,3 +25,13 @@ class APIError(AXSemanticsError):
             )
         
         return self._message or '<no further information'
+
+
+class AuthenticationError(AXSemanticsError):
+    def __str__(self):
+        if self.request:
+            return 'Failed to authenticate against {}.'.format(
+                self.request.request.url
+            )
+
+        return self._message or 'Failed to authenticate.'
