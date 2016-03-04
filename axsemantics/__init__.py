@@ -7,3 +7,8 @@ from axsemantics.axresource import (
 )
 
 import axsemantics.constants
+
+from axsemantics.errors import (
+    APIConnectionError,
+    APIError,
+)

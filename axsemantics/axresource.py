@@ -3,6 +3,10 @@ import json
 import requests
 
 from axsemantics import constants
+from axsemantics.errors import (
+    APIConnectionError,
+    APIError,
+)
 
 
 def login(user, password, api_base=None):
@@ -79,19 +83,28 @@ class RequestHandler:
         if constants.DEBUG:
             print('Sending {} request to {}.'.format(method, url))
 
-        if method == 'post':
-            result = requests.post(url, headers=headers, json=params)
-        elif method == 'put':
-            result = requests.put(url, headers=headers, data=params)
-        else:
-            result = requests.request(method, url, headers=headers)
+        try:
+            if method == 'post':
+                result = requests.post(url, headers=headers, json=params, timeout=5)
+            elif method == 'put':
+                result = requests.put(url, headers=headers, data=params, timeout=5)
+            else:
+                result = requests.request(method, url, headers=headers, timeout=5)
 
-        if result.status_code in (200, 201, 204):
-            return result.json()
+            result.raise_for_status()
 
-        if constants.DEBUG:
-            print('Got unexpected reponse with status {}.'.format(result.status_code))
-            print('Content: {}'.format(result.content))
+        except (requests.Timeout, requests.ConnectionError):
+            raise APIConnectionError
+
+        except requests.HTTPError:
+            if constants.DEBUG:
+                print('Got unexpected reponse with status {}.'.format(result.status_code))
+                print('Content: {}'.format(result.content))
+
+            raise APIError(result)
+
+        return result.json()
+
 
     def encode_params(self, params):
         if isinstance(params, dict):
