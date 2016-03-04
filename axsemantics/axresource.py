@@ -16,14 +16,18 @@ def login(user, password, api_base=None):
         'password': password,
     }
     requestor = RequestHandler()
-    response = requestor.request(
-        url='/{}/rest-auth/login'.format(constants.API_VERSION),
-        method='post',
-        params=data,
-    )
 
-    if not response.get('key', None):
-        raise AuthenticationError(response)
+    try:
+        response = requestor.request(
+            url='/{}/rest-auth/login'.format(constants.API_VERSION),
+            method='post',
+            params=data,
+        )
+    except APIError as error:
+        if hasattr(error, 'request') and error.request.status_code == 400:
+            raise AuthenticationError(error.request) from None
+        else:
+            raise
 
     if constants.DEBUG:
         print('Received authentication token {}.'.format(response['key']))

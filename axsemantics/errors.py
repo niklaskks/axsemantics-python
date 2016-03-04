@@ -1,8 +1,9 @@
 class AXSemanticsError(Exception):
 
-    def __init__(self, message=None, request=None):
+    def __init__(self, request=None, message=None):
         super(AXSemanticsError, self).__init__(message)
         self.request = request
+        self.message = message
 
 
 class APIConnectionError(AXSemanticsError):
@@ -12,7 +13,7 @@ class APIConnectionError(AXSemanticsError):
                 self.request.request.url,
             )
         
-        return self._message or '<no further information'
+        return self.message or '<no further information'
 
 
 class APIError(AXSemanticsError):
@@ -24,7 +25,7 @@ class APIError(AXSemanticsError):
                 self.request.request.url,
             )
         
-        return self._message or '<no further information'
+        return self.message or '<no further information'
 
 
 class AuthenticationError(AXSemanticsError):
@@ -34,4 +35,4 @@ class AuthenticationError(AXSemanticsError):
                 self.request.request.url
             )
 
-        return self._message or 'Failed to authenticate.'
+        return self.message or 'Failed to authenticate.'
