@@ -326,7 +326,13 @@ class ListableMixin:
         return cls.list_class
 
 
-class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
+class ContentGenerationMixin:
+    def generate_content(self, force=False, params=None):
+        url = '{}generate_content/?force={}'.format(self.instance_url(), str(force).lower())
+        return self.request('post', url, params)
+
+
+class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableMixin, ContentGenerationMixin, APIResource):
     class_name = 'content-project'
     required_fields = ['name', 'engine_configuration']
 
@@ -359,7 +365,7 @@ class ThingList(ListResource):
         return create_object(self.current_list[self.current_index - 1], api_token=self.api_token, _type=self.class_name, cp_id=self.cp_id)
 
 
-class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, ListableMixin, APIResource):
+class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResourceMixin, ListableMixin, ContentGenerationMixin, APIResource):
     class_name = 'thing'
     required_fields = ['uid', 'name', 'content_project']
     list_class = ThingList
