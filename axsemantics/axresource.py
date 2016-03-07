@@ -19,7 +19,7 @@ def login(user, password, api_base=None):
 
     try:
         response = requestor.request(
-            url='/{}/rest-auth/login'.format(constants.API_VERSION),
+            url='/{}/rest-auth/login/'.format(constants.API_VERSION),
             method='post',
             params=data,
         )
@@ -71,7 +71,7 @@ class RequestHandler:
         self.token = token
 
     def request(self, method, url, params, user_headers=None):
-        url = '{}{}/'.format(self.base, url)
+        url = '{}{}'.format(self.base, url)
         token = self.token or constants.API_TOKEN
 
         if method in ('get', 'delete') and params:
@@ -216,12 +216,12 @@ class APIResource(AXSemanticsObject):
 
     @classmethod
     def class_url(cls):
-        return '/{}/{}'.format(constants.API_VERSION, cls.class_name)
+        return '/{}/{}/'.format(constants.API_VERSION, cls.class_name)
 
     def instance_url(self):
         if self.get('id', None):
             id = self['id']
-            return '{}/{}'.format(self.class_url(), requests.utils.quote(str(id)))
+            return '{}{}/'.format(self.class_url(), requests.utils.quote(str(id)))
         else:
             return self.class_url()
 
@@ -333,7 +333,7 @@ class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableM
     def __init__(self, api_token=None, **kwargs):
         super(ContentProject, self).__init__(api_token=api_token, **kwargs)
         if self['id']:
-            thing_url = '{}/thing'.format(self.instance_url())
+            thing_url = '{}thing/'.format(self.instance_url())
             self.things = ThingList(cp_id=self['id'], api_token=api_token, class_name=self.class_name, initial_url=thing_url)
 
 
@@ -369,10 +369,10 @@ class Thing(CreateableResourceMixin, UpdateableResourceMixin, DeleteableResource
         self['content_project'] = cp_id
 
     def instance_url(self):
-        url = '/{}/content-project/{}/thing'.format(
+        url = '/{}/content-project/{}/thing/'.format(
             constants.API_VERSION,
             self['content_project'],
         )
         if self['id']:
-            url += '/{}'.format(self['id'])
+            url += '{}/'.format(self['id'])
         return url
