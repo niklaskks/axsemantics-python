@@ -338,9 +338,11 @@ class ContentProject(CreateableResourceMixin, DeleteableResourceMixin, ListableM
 
     def __init__(self, api_token=None, **kwargs):
         super(ContentProject, self).__init__(api_token=api_token, **kwargs)
+
+    def things(self):
         if self['id']:
             thing_url = '{}thing/'.format(self.instance_url())
-            self.things = ThingList(cp_id=self['id'], api_token=api_token, class_name=self.class_name, initial_url=thing_url)
+            return ThingList(cp_id=self['id'], api_token=self.api_token, class_name=self.class_name, initial_url=thing_url)
 
 
 class ContentProjectList(ListResource):
