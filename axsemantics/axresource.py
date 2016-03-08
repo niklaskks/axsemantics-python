@@ -113,7 +113,6 @@ class RequestHandler:
 
         return result.json()
 
-
     def encode_params(self, params):
         if isinstance(params, dict):
             return '?' + self._dict_encode(params)

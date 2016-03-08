@@ -12,7 +12,7 @@ class APIConnectionError(AXSemanticsError):
             return 'Could not connect to {}.'.format(
                 self.request.request.url,
             )
-        
+
         return self.message or '<no further information'
 
 
@@ -24,8 +24,8 @@ class APIError(AXSemanticsError):
                 self.request.request.method,
                 self.request.request.url,
             )
-        
-        return self.message or '<no further information'
+
+        return self.message or '<no further information>'
 
 
 class AuthenticationError(AXSemanticsError):
