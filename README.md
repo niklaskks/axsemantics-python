@@ -20,10 +20,15 @@ The `APIConnectionError` and the `APIError` can be raised on any action involvin
 
 # How to install
 
-(This is still a work in progress.)
-
-In the end you should be able to install this package using pip.
+    pip install axsemantics
 
 # How to contribute
 
 Fork it, fix it, PR it! :)
+
+# Maintainer Commands
+
+    rm -rf axsemantics.egg-info build dist
+    python setup.py sdist
+    python setup.py bdist_wheel
+    twine upload -r pypi dist/*
