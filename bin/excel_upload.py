@@ -13,6 +13,7 @@ MAPPING dict if you want to create the Objects.
 Required dependencies:
     - axsemantics
     - pandas
+    - xlrd
 """
 import json
 import re
@@ -20,6 +21,26 @@ import sys
 
 import axsemantics
 import pandas as pd
+
+# mapping helper functions
+def splitdata(field, key, row_separator, value_separator):
+    data = {}
+    try:
+        pairs = field.split(row_separator)
+    except AttributeError:
+        return data
+
+    for pair in pairs:
+        key, value = pair.split(value_separator)
+        key = normalize_key(key)
+        data[key] = value.strip()
+    return data
+
+
+def splitlist(field, key, separator):
+    data = [element.strip() for element in field.split(separator)]
+    return {key: data}
+
 
 # IMPORT_UNCONFIGURED: Boolean
 #  - True: columns not defined in MAPPING will be camel-cased and imported
@@ -42,31 +63,12 @@ MAPPING = {
 # EXPORT: Boolean
 #  - True: save things as json instead of creating them
 #  - False: create things in API
-EXPORT = False
+EXPORT = True
 
 # AXSEMANTICS_*: values to use with the axsemantics library
 AXSEMANTICS_USER = 'user@example.com'
 AXSEMANTICS_PASSWORD = 'securepassword'
 AXSEMANTICS_CONTENT_PROJECT = 4004
-
-
-def splitdata(field, key, row_separator, value_separator):
-    data = {}
-    try:
-        pairs = field.split(row_separator)
-    except AttributeError:
-        return data
-
-    for pair in pairs:
-        key, value = pair.split(value_separator)
-        key = normalize_key(key)
-        data[key] = value.strip()
-    return data
-
-
-def splitlist(field, key, separator):
-    data = [element.strip() for element in field.split(separator)]
-    return {key: data}
 
 
 def normalize_key(key):
@@ -92,6 +94,7 @@ def _parse_row(row):
 
         elif IMPORT_UNCONFIGURED:
             data[normalize_key(xslx_key)] = xslx_value
+    return data
 
 
 if __name__ == '__main__':
@@ -102,8 +105,10 @@ if __name__ == '__main__':
 
     data = []
     sheet = xslx.parse(0)
+    # replace float with value `nan` with none
+    sheet_with_none = sheet.where((pd.notnull(sheet)), None)
 
-    for index, row in sheet.iterrows():
+    for index, row in sheet_with_none.iterrows():
         data.append(_parse_row(row))
 
     if EXPORT is True:
