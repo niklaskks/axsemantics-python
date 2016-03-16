@@ -26,13 +26,8 @@ setup(
     ],
 
     packages = ['axsemantics'],
-    scripts = ['bin/excel_upload.py'],
 
     install_requires = [
         'requests==2.9.1',
     ],
-
-    extras_require = {
-        'examples': ['pandas==0.17.1'],
-    },
 )
