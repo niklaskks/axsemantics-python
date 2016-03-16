@@ -4,12 +4,11 @@ from setuptools import setup
 
 setup(
     name = 'axsemantics',
-    version = '0.0.1',
+    version = '0.1',
 
     description = 'AXSemantics API client',
 
     url = 'https://github.com/axsemantics/axsemantics-python',
-    download_url = 'https://github.com/axsemantics/axsemantics-python/tarball/0.1',
 
     author = 'Tobias Kunze',
     author_email = 'tobias.kunze@ax-semantics.com',
