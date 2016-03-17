@@ -18,10 +18,9 @@ class UpdateableMixin:
 
     def __init__(self, *args, **kwargs):
         super(UpdateableMixin, self).__init__(*args, **kwargs)
+        self.update(kwargs)
         for key in self.required_fields:
-            if key in kwargs:
-                self[key] = kwargs[key]
-            else:
+            if not key in kwargs:
                 self[key] = None
 
     def save(self):
