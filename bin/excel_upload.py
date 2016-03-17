@@ -101,7 +101,7 @@ if __name__ == '__main__':
     try:
         xslx = pd.ExcelFile(sys.argv[-1])
     except FileNotFoundError:
-        sys.exit('Could not find .xslx file {}.'.format(sys.argv[-1]))
+        sys.exit('Could not find .xlsx file {}.'.format(sys.argv[-1]))
 
     data = []
     sheet = xslx.parse(0)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
         data.append(_parse_row(row))
 
     if EXPORT is True:
-        json_name = re.sub(r'.xslx', '.json', sys.argv[-1])
+        json_name = re.sub(r'.xlsx', '.json', sys.argv[-1])
         with open(json_name, 'w') as f:
             json.dump(data, f)
     else:
@@ -122,7 +122,7 @@ if __name__ == '__main__':
             thing = axsemantics.Thing(
                 uid=pure_data['uid'],
                 name=pure_data['name'],
-                cp_id=AXSEMANTICS_CONTENT_PROJECT,
                 pure_data=pure_data,
+                cp_id=AXSEMANTICS_CONTENT_PROJECT,
             ).create()
             things.append(thing)
