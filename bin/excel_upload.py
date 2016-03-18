@@ -61,9 +61,10 @@ MAPPING = {
 }
 
 # EXPORT: Boolean
+#  - set this if you don't want to upload directly
 #  - True: save things as json instead of creating them
 #  - False: create things in API
-EXPORT = True
+EXPORT = False
 
 # AXSEMANTICS_*: values to use with the axsemantics library
 AXSEMANTICS_USER = 'user@example.com'
