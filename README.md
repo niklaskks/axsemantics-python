@@ -1,10 +1,32 @@
-[![ax logo](docs/AX_Logo.png)](https://www.ax-semantics.com/)
-
 # axsemantics-python
 
-Use the AX Semantics API from python3 - documentation is [here](https://apidocs.ax-semantics.com).
+Use the AX Semantics Data Exchange API from python3 - you can find the API documentation with example calls  [here](https://apidocs.ax-semantics.com).
 
-# On Error-Handling
+requires python3.
+
+### Excel Upload Quickstart
+
+If you want to import a manually created xlsx file, there is a helper script to extract that data into the proper JSON format
+* see /bin/excel_upload.py
+* edit the file and make the proper configuration:
+ * change username & password
+ * edit the content project ID, where the things should be created
+ * set the 'MAPPING' variables, to extract the proper data: map xslx columns to proper names for AX
+  * a 'uid' and a 'name' property is required
+    * 'a_uid_column_in_your_table': 'uid',
+    * 'name_column_in_your_table': 'name',
+  * extract Lists or key:value pairs into JSON dicts
+    * 'Sizes': [splitlist, {'separator': '~'}],
+    * 'Specification': [splitdata, {'row_separator': '~',
+                                  'value_separator': ':'}]
+
+run with ./excel_upload.py $yourfilename.xlsx
+
+### How to install
+
+    pip install axsemantics
+
+### On Error-Handling
 
 Since this topic is very specific to Python, it isn't discussed in the [API
 documentation](https://apidocs.ax-semantics.com).
@@ -18,13 +40,8 @@ This Python library has three exception classes:
 The `APIConnectionError` and the `APIError` can be raised on any action involving the server, primarily `save()`, `create()`,
 `delete()` and `refresh()` calls.
 
-# How to install
 
-    pip install axsemantics
 
-# How to contribute
-
-Fork it, fix it, PR it! :)
 
 # Maintainer Commands
 
