@@ -1,8 +1,7 @@
 # axsemantics-python
 
-Use the AX Semantics Data Exchange API from python3 - you can find the API documentation with example calls  [here](https://apidocs.ax-semantics.com).
+Use the AX Semantics Data Exchange API from python3 - you can find the API documentation with example calls  [here](http://apidocs.ax-semantics.com).
 
-requires python3.
 
 ### Excel Upload Quickstart
 
@@ -25,6 +24,9 @@ run with ./excel_upload.py $yourfilename.xlsx
 ### How to install
 
     pip install axsemantics
+
+* requires: python3.
+
 
 ### On Error-Handling
 
