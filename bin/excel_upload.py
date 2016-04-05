@@ -42,6 +42,14 @@ def splitlist(field, key, separator):
     return {key: data}
 
 
+def int_uid(field, key):
+    try:
+        return {'uid': str(int(field))}
+    except TypeError:
+        if field is None:
+            raise KeyError('uid field must not be None') from None
+        raise
+
 # IMPORT_UNCONFIGURED: Boolean
 #  - True: columns not defined in MAPPING will be camel-cased and imported
 #  - False: only columns in MAPPING will be imported
@@ -53,7 +61,7 @@ IMPORT_UNCONFIGURED = True
 #    the mapping function will be passed the parameters 'field' and 'key' aswell as everything in
 #    the params dict
 MAPPING = {
-    'MPID': 'uid',
+    'MPID': [int_uid, {}],
     'Title English': 'name',
     'Sizes': [splitlist, {'separator': '~'}],
     'Specification': [splitdata, {'row_separator': '~',
