@@ -133,12 +133,24 @@ if __name__ == '__main__':
             json.dump(data, f)
     else:
         axsemantics.login(AXSEMANTICS_USER, AXSEMANTICS_PASSWORD)
-        things = []
         for pure_data in data:
-            thing = axsemantics.Thing(
-                uid=pure_data['uid'],
-                name=pure_data['name'],
-                pure_data=pure_data,
-                cp_id=AXSEMANTICS_CONTENT_PROJECT,
-            ).create()
-            things.append(thing)
+            try:
+                thing = axsemantics.Thing(
+                    uid=pure_data['uid'],
+                    name=pure_data['name'],
+                    pure_data=pure_data,
+                    cp_id=AXSEMANTICS_CONTENT_PROJECT,
+                )
+                thing.create()
+                print('.', end='')
+            except KeyError as e:
+                print('Could not create thing for data {}, missing key {}.'.format(pure_data, e))
+            except axsemantics.APIError as e:
+                message = '''An error occurred while saving thing {}.
+                    \nMethod: {}\nResource: {}\nPayload: {}\nResponse: {} {}\n'''
+                print(message.format(thing,
+                                     e.request.request.method,
+                                     e.request.url,
+                                     e.request.request.body,
+                                     e.request.status_code,
+                                     e.request.content))
