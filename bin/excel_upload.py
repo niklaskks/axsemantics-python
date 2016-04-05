@@ -100,7 +100,13 @@ def _parse_row(row):
                 data[mapped_key] = xslx_value
 
             elif isinstance(mapped_key, list):
-                data.update(mapped_key[0](field=xslx_value, key=xslx_key, **mapped_key[1]))
+                try:
+                    data.update(mapped_key[0](field=xslx_value,
+                                              key=xslx_key,
+                                              **mapped_key[1],
+                                             ))
+                except:
+                    print('Failed to parse field {} with content {}.'.format(xslx_key, xslx_value))
 
         elif IMPORT_UNCONFIGURED:
             data[normalize_key(xslx_key)] = xslx_value
