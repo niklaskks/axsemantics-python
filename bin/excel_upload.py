@@ -8,7 +8,7 @@ This script will upload data found in an excel file to a given content project.
 It expects the excel file name as command line parameter.
 
 Take care to include an 'name' and a 'uid' field in either your data or the
-MAPPING dict if you want to create the Objects.
+MAPPING dict if you want to create the Objects. 
 
 Required dependencies:
     - axsemantics
@@ -60,6 +60,8 @@ IMPORT_UNCONFIGURED = True
 #  - {"column name": [function, params]}: map a column name to a parsing method (returning a dict)
 #    the mapping function will be passed the parameters 'field' and 'key' aswell as everything in
 #    the params dict
+# left is the name of your excel column, right is the configuration (renaming or split).
+# remember: uid and name *must* be present in the output
 MAPPING = {
     'MPID': [int_uid, {}],
     'Title English': 'name',
