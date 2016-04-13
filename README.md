@@ -23,12 +23,18 @@ run with ./excel_upload.py $yourfilename.xlsx
 
 ### How to install
 
+Please work in a virtualenv. 
+
+    virtualenv -p /usr/bin/python3 axsemantics
+    source axsemantics/bin/activate
     pip install axsemantics
 
-* requires: python3.
+* requires: `python3`.
+
+When you are done with your work with the client you can deactivate the virtualenv with the command `deactivate`.
 
 
-### On Error-Handling
+### On Error Handling
 
 Since this topic is very specific to Python, it isn't discussed in the [API
 documentation](https://apidocs.ax-semantics.com).
@@ -42,10 +48,7 @@ This Python library has three exception classes:
 The `APIConnectionError` and the `APIError` can be raised on any action involving the server, primarily `save()`, `create()`,
 `delete()` and `refresh()` calls.
 
-
-
-
-# Maintainer Commands
+## Maintainer Commands
 
     rm -rf axsemantics.egg-info build dist
     python setup.py sdist
