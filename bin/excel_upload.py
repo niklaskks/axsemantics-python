@@ -85,8 +85,7 @@ AXSEMANTICS_CONTENT_PROJECT = 4004
 def normalize_key(key):
     key = key.strip()
     key = re.sub(r'A-Za-z0-9_', '', key)
-    result = key.title()
-    result[0] = key[0]
+    result = key[0] + key.title()[1:]
     return result.replace(' ', '')
 
 
