@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 from axsemantics import constants
@@ -34,6 +36,16 @@ class RequestHandler:
             print('Sending {} request to {}.'.format(method, url))
 
         try:
+            result = self.request_and_raise(method, url, headers, params)
+        except APIConnectionError:
+            if constants.DEBUG:
+                print('Request failed, sleeping for 5 seconds and retrying ...')
+            time.sleep(5)
+            result = self.request_and_raise(method, url, headers, params)
+        return result.json()
+
+    def request_and_raise(self, method, url, headers, params):
+        try:
             if method == 'post':
                 result = requests.post(url, headers=headers, json=params, timeout=5)
             elif method == 'put':
@@ -42,18 +54,16 @@ class RequestHandler:
                 result = requests.request(method, url, headers=headers, timeout=5)
 
             result.raise_for_status()
+            return result
 
-        except (requests.Timeout, requests.ConnectionError):
+        except (requests.Timeout, requests.ConnectionError, requests.exceptions.ReadTimeout):
             raise APIConnectionError
 
         except requests.HTTPError:
             if constants.DEBUG:
                 print('Got unexpected reponse with status {}.'.format(result.status_code))
                 print('Content: {}'.format(result.content))
-
             raise APIError(result)
-
-        return result.json()
 
     def encode_params(self, params):
         if isinstance(params, dict):
