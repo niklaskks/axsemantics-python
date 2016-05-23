@@ -83,10 +83,10 @@ AXSEMANTICS_CONTENT_PROJECT = 4004
 
 
 def normalize_key(key):
+    pattern = re.compile('[^A-Za-z0-9_]')
     key = key.strip()
-    key = re.sub(r'A-Za-z0-9_', '', key)
-    result = key[0] + key.title()[1:]
-    return result.replace(' ', '')
+    key = pattern.sub('', key)
+    return key
 
 
 def _parse_row(row):
